@@ -1,0 +1,32 @@
+# Client
+client/node_modules/
+client/.next/
+client/.env
+client/build/
+client/.pnp
+client/.pnp.js
+client/coverage/
+client/out/
+client/npm-debug.log*
+client/yarn-debug.log*
+client/yarn-error.log*
+
+# Server
+server/__pycache__/
+server/*.py[cod]
+server/*$py.class
+server/*.so
+server/.env
+server/venv/
+server/env/
+server/db.sqlite3
+server/media/
+server/static/
+server/*.log
+
+# General
+.DS_Store
+.vscode/
+.idea/
+*.pem
+*.log
