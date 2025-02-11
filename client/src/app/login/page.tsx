@@ -28,7 +28,7 @@ export default function Login() {
       const data = await response.json();
       if (response.ok) {
         login(data.access);
-        router.push('/notes');  // Make sure this matches your route exactly
+        router.push('/notes');  
       } else {
         setError(data.detail || 'Login failed');
       }
