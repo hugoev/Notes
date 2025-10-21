@@ -7,6 +7,7 @@ A modern, full-stack notes application built with Next.js, Django, and PostgreSQ
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Docker and Docker Compose
 - Node.js 18+ (for local development)
 - Python 3.11+ (for local development)
@@ -14,22 +15,26 @@ A modern, full-stack notes application built with Next.js, Django, and PostgreSQ
 ### Development Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone <your-repo-url>
    cd Notes
    ```
 
 2. **Start with Docker (Recommended)**
+
    ```bash
    docker compose -f docker-compose.dev.yml up --build
    ```
 
 3. **Access the application**
+
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000/api/v1
    - Admin Panel: http://localhost:8000/admin
 
 4. **Create a superuser**
+
    ```bash
    docker compose -f docker-compose.dev.yml exec backend python manage.py createsuperuser
    ```
@@ -40,7 +45,9 @@ A modern, full-stack notes application built with Next.js, Django, and PostgreSQ
    ```
 
 ### Environment Variables
+
 Copy `.env.example` to `.env` and configure your settings:
+
 ```bash
 cp .env.example .env
 ```
