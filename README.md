@@ -244,6 +244,60 @@ docker compose up --build
 
 ## 🧪 Testing
 
+### **Test Framework**
+
+The application uses **pytest** with comprehensive test coverage for:
+
+- **API Endpoints** - All REST API endpoints tested
+- **Authentication** - User registration, login, and profile management
+- **Authorization** - User access control and permissions
+- **Data Validation** - Input validation and error handling
+- **Business Logic** - Core application functionality
+
+### **Running Tests**
+
+#### **Install Test Dependencies**
+
+```bash
+cd server
+pip install -r requirements.txt
+```
+
+#### **Run All Tests**
+
+```bash
+# Using pytest (recommended)
+pytest
+
+# With coverage report
+pytest --cov=. --cov-report=html
+
+# Run specific test files
+pytest notes/test_notes_api.py
+pytest accounts/test_auth_api.py
+```
+
+#### **Test Categories**
+
+```bash
+# Run only unit tests
+pytest -m unit
+
+# Run only integration tests
+pytest -m integration
+
+# Skip slow tests
+pytest -m "not slow"
+```
+
+### **Test Coverage**
+
+- **Notes API**: 15+ test cases covering CRUD operations, pagination, search, and filtering
+- **Categories API**: 12+ test cases covering category management and validation
+- **Authentication API**: 18+ test cases covering registration, login, and profile management
+- **Authorization**: Tests for user isolation and access control
+- **Edge Cases**: Error handling, validation, and boundary conditions
+
 ### **Database Seeding**
 
 The application comes with a comprehensive seeding script that creates:

@@ -9,3 +9,9 @@ psycopg2-binary==2.9.9
 faker==24.0.0
 redis==5.0.1
 django-redis==5.4.0
+
+# Testing dependencies
+pytest==7.4.3
+pytest-django==4.7.0
+pytest-cov==4.1.0
+factory-boy==3.3.0

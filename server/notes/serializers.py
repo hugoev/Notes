@@ -92,15 +92,12 @@ class NoteSerializer(serializers.ModelSerializer):
         help_text="Name of the associated category"
     )
     word_count = serializers.ReadOnlyField(
-        source='word_count',
         help_text="Number of words in the note content"
     )
     character_count = serializers.ReadOnlyField(
-        source='character_count',
         help_text="Number of characters in the note content"
     )
     is_recent = serializers.ReadOnlyField(
-        source='is_recent',
         help_text="Whether the note was created within the last 7 days"
     )
     
