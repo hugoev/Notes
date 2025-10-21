@@ -267,3 +267,40 @@ class TestAuthenticationAPI:
         
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert 'detail' in response.data
+
+    def test_user_profile_serializer_error(self, authenticated_client, user):
+        """Test user profile update with serializer validation error."""
+        # Test with invalid data that triggers serializer validation
+        data = {
+            'username': '',  # Empty username should trigger validation error
+            'email': 'invalid-email',  # Invalid email format
+        }
+        
+        response = authenticated_client.put('/api/v1/users/profile/', data, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'username' in response.data or 'email' in response.data
+
+    def test_change_password_serializer_error(self, authenticated_client, user):
+        """Test change password with serializer validation error."""
+        # Test with mismatched passwords
+        data = {
+            'current_password': 'admin123',
+            'new_password': 'newpass123',
+            'confirm_password': 'differentpass123'
+        }
+        
+        response = authenticated_client.post('/api/v1/users/change-password/', data, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'detail' in response.data
+
+    def test_change_password_same_password_error(self, authenticated_client, user):
+        """Test change password with same current and new password."""
+        data = {
+            'current_password': 'admin123',
+            'new_password': 'admin123',
+            'confirm_password': 'admin123'
+        }
+        
+        response = authenticated_client.post('/api/v1/users/change-password/', data, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'detail' in response.data

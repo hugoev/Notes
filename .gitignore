@@ -23,6 +23,10 @@ server/db.sqlite3
 server/media/
 server/static/
 server/*.log
+server/htmlcov/
+server/.pytest_cache/
+server/.coverage
+server/coverage.xml
 
 # General
 .DS_Store
@@ -30,3 +34,30 @@ server/*.log
 .idea/
 *.pem
 *.log
+
+# Docker
+.dockerignore
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+.hypothesis/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+ehthumbs.db
