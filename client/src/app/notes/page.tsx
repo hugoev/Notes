@@ -1,58 +1,53 @@
 'use client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  getNotes, 
-  createNote, 
-  updateNote, 
-  deleteNote, 
-  togglePinNote,
-  getCategories,
-  createCategory,
-  deleteCategory,
-  type Note,
-  type Category 
-} from '@/services/api';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { toast } from "@/hooks/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { motion, AnimatePresence } from "framer-motion";
-import { format } from 'date-fns';
-import { 
-  FolderIcon, 
-  PlusIcon, 
-  SearchIcon, 
-  ChevronDownIcon, 
-  Settings2Icon,
-  LayoutGridIcon,
-  LayoutListIcon,
-  Share2Icon,
-  TrashIcon,
-  PencilIcon,
-  PinIcon,
-  LogOutIcon,
-  FolderPlusIcon,
-  NotebookPen,
-  ClockIcon,
-  FileTextIcon,
-} from 'lucide-react';
 import { ThemeCustomizer } from '@/components/theme-customizer';
 import { ThemeToggle } from '@/components/theme-switcher';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
+import {
+    createCategory,
+    createNote,
+    deleteCategory,
+    deleteNote,
+    getCategories,
+    getNotes,
+    togglePinNote,
+    updateNote,
+    type Category,
+    type Note
+} from '@/services/api';
+import { useAuthStore } from '@/store/authStore';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { AnimatePresence, motion } from "framer-motion";
+import {
+    ClockIcon,
+    FileTextIcon,
+    FolderIcon,
+    LayoutGridIcon,
+    LayoutListIcon,
+    LogOutIcon,
+    NotebookPen,
+    PencilIcon,
+    PinIcon,
+    PlusIcon,
+    SearchIcon,
+    TrashIcon
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface NewCategoryDialogProps {
   isOpen: boolean;
@@ -120,17 +115,51 @@ export default function Notes() {
   }, [token, router]);
 
   // Queries
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery<Category[]>({
+  const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
     queryKey: ['categories'],
     queryFn: getCategories,
     enabled: !!token && isClient,
   });
 
-  const { data: notes = [], isLoading: notesLoading } = useQuery<Note[]>({
+  const {
+    data: notesInfiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: notesLoading,
+  } = useInfiniteQuery({
     queryKey: ['notes', selectedCategory?.id],
-    queryFn: getNotes,
+    queryFn: ({ pageParam = 1 }) => getNotes(pageParam, 20),
+    getNextPageParam: (lastPage) => {
+      return lastPage.next ? lastPage.next.split('page=')[1] : undefined;
+    },
     enabled: !!token && isClient,
+    initialPageParam: 1,
   });
+
+  // Extract arrays and counts from paginated responses
+  const categories = categoriesData?.results || [];
+  const notes = notesInfiniteData?.pages.flatMap(page => page.results) || [];
+  const totalNotesCount = notesInfiniteData?.pages[0]?.count || 0;
+  const totalCategoriesCount = categoriesData?.count || 0;
+
+  // Infinite scroll logic
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+    if (!hasNextPage || isFetchingNextPage) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+    const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100; // Load when 100px from bottom
+
+    console.log('Scroll detected:', { scrollTop, scrollHeight, clientHeight, isNearBottom, hasNextPage, isFetchingNextPage });
+
+    if (isNearBottom) {
+      console.log('Fetching next page...');
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
 
   // Mutations
   const createNoteMutation = useMutation({
@@ -346,7 +375,8 @@ const handleCreateCategory = async (name: string) => {
 };
 
 const handleDeleteCategory = async (categoryId: number) => {
-  const notesInCategory = notes.filter(note => note.category === categoryId).length;
+  const category = categories.find(cat => cat.id === categoryId);
+  const notesInCategory = category?.notes_count || 0;
   if (notesInCategory > 0) {
     toast({
       title: "Cannot Delete Category",
@@ -363,7 +393,7 @@ const handleLogout = () => {
   router.push('/login');
 };
 
-// Filters and Sorting
+// Filters and Sorting (applied to loaded notes only - first page for performance)
 const filteredNotes = notes.filter(note => 
   (selectedCategory ? note.category === selectedCategory.id : true) &&
   (searchQuery ? (
@@ -418,7 +448,7 @@ return (
           <FolderIcon className="h-4 w-4 mr-2 text-blue-500" />
           All Notes
           <span className="ml-auto text-xs bg-muted px-2 py-0.5 rounded-md">
-            {notes.length}
+            {totalNotesCount}
           </span>
         </Button>
       </div>
@@ -452,7 +482,7 @@ return (
                 }`} />
                 <span className="truncate">{category.name}</span>
                 <span className="ml-auto text-xs bg-muted/60 px-2 py-0.5 rounded-md">
-                  {notes.filter(note => note.category === category.id).length}
+                  {category.notes_count || 0}
                 </span>
               </Button>
               <Button
@@ -480,19 +510,6 @@ return (
       </div>
     </ScrollArea>
 
-    {/* Footer */}
-    <div className="mt-auto pt-4">
-      <Separator className="mb-4" />
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-full justify-start"
-        onClick={() => setNewCategoryDialogOpen(true)}
-      >
-        <FolderPlusIcon className="h-4 w-4 mr-2" />
-        New Category
-      </Button>
-    </div>
   </div>
 </div>
 
@@ -504,7 +521,7 @@ return (
           <div className="flex items-center gap-2">
             <h2 className="font-semibold text-lg">{selectedCategory?.name || 'All Notes'}</h2>
             <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md">
-              {sortedNotes.length}
+              {sortedNotes.length} of {totalNotesCount}
             </span>
           </div>
           <div className="flex gap-1">
@@ -544,7 +561,11 @@ return (
       </div>
 
       {/* Notes List */}
-      <ScrollArea className="flex-1">
+      <div 
+        className="flex-1 overflow-y-auto" 
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+      >
         <div className={`p-3 grid ${isGridView ? 'grid-cols-2 gap-2' : 'grid-cols-1 gap-1'}`}>
           <AnimatePresence>
             {sortedNotes.map((note) => (
@@ -624,8 +645,40 @@ return (
               </p>
             </div>
           )}
+
+          {/* Loading indicator for infinite scroll */}
+          {isFetchingNextPage && (
+            <div className="col-span-full flex items-center justify-center py-4">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                <span className="text-sm">Loading more notes...</span>
+              </div>
+            </div>
+          )}
+
+          {/* Load More Button (fallback) */}
+          {hasNextPage && !isFetchingNextPage && (
+            <div className="col-span-full flex items-center justify-center py-4">
+              <Button 
+                onClick={() => fetchNextPage()} 
+                variant="outline" 
+                size="sm"
+              >
+                Load More Notes
+              </Button>
+            </div>
+          )}
+
+          {/* End of results indicator */}
+          {!hasNextPage && sortedNotes.length > 0 && (
+            <div className="col-span-full flex items-center justify-center py-4">
+              <span className="text-sm text-muted-foreground">
+                You've reached the end of your notes
+              </span>
+            </div>
+          )}
         </div>
-      </ScrollArea>
+      </div>
     </div>
 
     {/* Right Column - Note Editor */}

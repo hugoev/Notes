@@ -1,11 +1,11 @@
 // src/app/login/page.tsx
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from '@/store/authStore';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -17,7 +17,7 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8000/api/token/', {
+      const response = await fetch('http://localhost:8000/api/v1/auth/token/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

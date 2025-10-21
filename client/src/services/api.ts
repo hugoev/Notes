@@ -1,6 +1,6 @@
-import axios from 'axios';
+import { toast } from "@/hooks/use-toast";
 import { useAuthStore } from '@/store/authStore';
-import { toast } from "@/hooks/use-toast"
+import axios from 'axios';
 
 export interface Note {
   id: number;
@@ -19,7 +19,7 @@ export interface Category {
 }
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api'
+  baseURL: 'http://localhost:8000/api/v1'
 });
 
 api.interceptors.request.use((config) => {
@@ -53,8 +53,8 @@ api.interceptors.request.use((config) => {
   );
 
 // Notes API
-export const getNotes = async (): Promise<Note[]> => {
-  const response = await api.get('/notes/');
+export const getNotes = async (page: number = 1, pageSize: number = 20): Promise<{results: Note[], count: number, next: string | null, previous: string | null}> => {
+  const response = await api.get(`/notes/?page=${page}&page_size=${pageSize}`);
   return response.data;
 };
 
@@ -78,7 +78,7 @@ export const togglePinNote = async (id: number, isPinned: boolean): Promise<Note
   };
 
 // Categories API
-export const getCategories = async (): Promise<Category[]> => {
+export const getCategories = async (): Promise<{results: Category[], count: number}> => {
   const response = await api.get('/categories/');
   return response.data;
 };

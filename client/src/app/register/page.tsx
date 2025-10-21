@@ -1,9 +1,9 @@
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function Register() {
   const [username, setUsername] = useState('');
@@ -15,7 +15,7 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8000/api/register/', {
+      const response = await fetch('http://localhost:8000/api/v1/auth/register/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
